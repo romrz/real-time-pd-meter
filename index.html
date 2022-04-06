@@ -9,6 +9,7 @@
 </head>
 
 <body>
+  <div id="loader" style="margin-top: 5rem; text-align: center;"><h1>Loading...</h1></div>
   <div class="container" style="display: flex;">
     <video class="input_video" style="display: none;"></video>
     <canvas class="output_canvas" width="1280px" height="720px" style="margin: auto;"></canvas>
@@ -19,6 +20,7 @@
 const videoElement = document.getElementsByClassName('input_video')[0];
 const canvasElement = document.getElementsByClassName('output_canvas')[0];
 const canvasCtx = canvasElement.getContext('2d');
+let loading = true;
 
 function getDistance(p1, p2) {
   return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2) + Math.pow(p1.z - p2.z, 2));
@@ -57,17 +59,17 @@ function onResults(results) {
     canvasCtx.fillText('PD: ' + pd.toFixed(0), (canvasElement.width / 2) - 40, 50);
 
     canvasCtx.fillStyle = 'chartreuse';
-    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[2][0]].x * 1280.0, results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[2][0]].y * 720.0,1,1);
-    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[0][0]].x * 1280.0, results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[0][0]].y * 720.0,1,1);
-    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[1][0]].x * 1280.0, results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[1][0]].y * 720.0,1,1);
-    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[3][0]].x * 1280.0, results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[3][0]].y * 720.0,1,1);
-    canvasCtx.fillRect(pupils.left.x * 1280.0, pupils.left.y * 720.0,1,1);
+    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[2][0]].x * 1280.0 - 2, results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[2][0]].y * 720.0 - 2,4,4);
+    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[0][0]].x * 1280.0 - 2, results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[0][0]].y * 720.0 - 2,4,4);
+    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[1][0]].x * 1280.0 - 2, results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[1][0]].y * 720.0 - 2,4,4);
+    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[3][0]].x * 1280.0 - 2, results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[3][0]].y * 720.0 - 2,4,4);
+    canvasCtx.fillRect(pupils.left.x * 1280.0 - 2, pupils.left.y * 720.0 - 2,4,4);
 
-    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[2][0]].x * 1280.0, results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[2][0]].y * 720.0,1,1);
-    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[0][0]].x * 1280.0, results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[0][0]].y * 720.0,1,1);
-    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[1][0]].x * 1280.0, results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[1][0]].y * 720.0,1,1);
-    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[3][0]].x * 1280.0, results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[3][0]].y * 720.0,1,1);
-    canvasCtx.fillRect(pupils.right.x * 1280.0, pupils.right.y * 720.0,1,1);
+    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[2][0]].x * 1280.0 - 2, results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[2][0]].y * 720.0 - 2,4,4);
+    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[0][0]].x * 1280.0 - 2, results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[0][0]].y * 720.0 - 2,4,4);
+    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[1][0]].x * 1280.0 - 2, results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[1][0]].y * 720.0 - 2,4,4);
+    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[3][0]].x * 1280.0 - 2, results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[3][0]].y * 720.0 - 2,4,4);
+    canvasCtx.fillRect(pupils.right.x * 1280.0 - 2, pupils.right.y * 720.0 - 2,4,4);
   }
 
   canvasCtx.restore();
@@ -89,6 +91,11 @@ faceMesh.onResults(onResults);
 const camera = new Camera(videoElement, {
   onFrame: async () => {
     await faceMesh.send({image: videoElement});
+
+    if (loading) {
+      loading = false;
+      document.getElementById('loader').style.display = 'none'
+    }
   },
   width: 1280,
   height: 720
