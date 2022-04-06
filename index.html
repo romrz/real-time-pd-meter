@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+  <div class="container" style="display: flex;">
+    <video class="input_video" style="display: none;"></video>
+    <canvas class="output_canvas" width="1280px" height="720px" style="margin: auto;"></canvas>
+  </div>
+</body>
+
+<script>
+const videoElement = document.getElementsByClassName('input_video')[0];
+const canvasElement = document.getElementsByClassName('output_canvas')[0];
+const canvasCtx = canvasElement.getContext('2d');
+
+function getDistance(p1, p2) {
+  return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2) + Math.pow(p1.z - p2.z, 2));
+}
+
+function onResults(results) {
+  canvasCtx.save();
+  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+  if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
+    let pupils = {
+      left: {
+        x: (results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[0][0]].x + results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[2][0]].x) / 2.0,
+        y: (results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[0][0]].y + results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[2][0]].y) / 2.0,
+        z: (results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[0][0]].z + results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[2][0]].z) / 2.0,
+        width: getDistance(results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[0][0]], results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[2][0]]),
+      },
+      right: {
+        x: (results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[0][0]].x + results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[2][0]].x) / 2.0,
+        y: (results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[0][0]].y + results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[2][0]].y) / 2.0,
+        z: (results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[0][0]].z + results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[2][0]].z) / 2.0,
+        width: getDistance(results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[0][0]], results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[2][0]]),
+      }
+    }
+
+    let distance = getDistance(pupils.left, pupils.right);
+    let irisWidthInMM = 12;
+    let pupilWidth = Math.min(pupils.left.width, pupils.right.width);
+    let pd = (irisWidthInMM / pupilWidth) * distance;
+
+    canvasCtx.font = '20px Arial';
+    canvasCtx.fillStyle = 'red';
+    canvasCtx.fillRect((canvasElement.width / 2) - 60, 20, 120, 50);
+    canvasCtx.fillStyle = 'white';
+    canvasCtx.fillText('PD: ' + pd.toFixed(0), (canvasElement.width / 2) - 40, 50);
+
+    canvasCtx.fillStyle = 'chartreuse';
+    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[2][0]].x * 1280.0, results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[2][0]].y * 720.0,1,1);
+    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[0][0]].x * 1280.0, results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[0][0]].y * 720.0,1,1);
+    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[1][0]].x * 1280.0, results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[1][0]].y * 720.0,1,1);
+    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[3][0]].x * 1280.0, results.multiFaceLandmarks[0][FACEMESH_LEFT_IRIS[3][0]].y * 720.0,1,1);
+    canvasCtx.fillRect(pupils.left.x * 1280.0, pupils.left.y * 720.0,1,1);
+
+    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[2][0]].x * 1280.0, results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[2][0]].y * 720.0,1,1);
+    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[0][0]].x * 1280.0, results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[0][0]].y * 720.0,1,1);
+    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[1][0]].x * 1280.0, results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[1][0]].y * 720.0,1,1);
+    canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[3][0]].x * 1280.0, results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[3][0]].y * 720.0,1,1);
+    canvasCtx.fillRect(pupils.right.x * 1280.0, pupils.right.y * 720.0,1,1);
+  }
+
+  canvasCtx.restore();
+}
+
+const faceMesh = new FaceMesh({locateFile: (file) => {
+  return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+}});
+
+faceMesh.setOptions({
+  maxNumFaces: 1,
+  refineLandmarks: true,
+  minDetectionConfidence: 0.5,
+  minTrackingConfidence: 0.5
+});
+
+faceMesh.onResults(onResults);
+
+const camera = new Camera(videoElement, {
+  onFrame: async () => {
+    await faceMesh.send({image: videoElement});
+  },
+  width: 1280,
+  height: 720
+});
+camera.start();
+</script>
+
+</html>
