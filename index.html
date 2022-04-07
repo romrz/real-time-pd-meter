@@ -9,11 +9,30 @@
 </head>
 
 <body>
-  <div id="loader" style="margin-top: 5rem; text-align: center;"><h1>Loading...</h1></div>
+  <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+    <button onclick="tryonActive = !tryonActive">Toggle Try-On Frame</button>
+  </div>
   <div class="container" style="display: flex;">
     <video class="input_video" style="display: none;"></video>
     <canvas class="output_canvas" width="1280px" height="720px" style="margin: auto;"></canvas>
   </div>
+  <div
+    id="loader"
+    style="
+      background-color: white;
+      text-align: center;
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99;
+      width: 100%;
+      height: 100vh;
+      margin: 0;
+      top: 0;
+      left: 0;
+    "
+  ><h1>Loading...</h1></div>
 </body>
 
 <script>
@@ -21,6 +40,7 @@ const videoElement = document.getElementsByClassName('input_video')[0];
 const canvasElement = document.getElementsByClassName('output_canvas')[0];
 const canvasCtx = canvasElement.getContext('2d');
 let loading = true;
+let tryonActive = false;
 
 function getDistance(p1, p2) {
   return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2) + Math.pow(p1.z - p2.z, 2));
@@ -47,6 +67,12 @@ function onResults(results) {
       }
     }
 
+    let nose = {
+      x: (results.multiFaceLandmarks[0][197].x),
+      y: (results.multiFaceLandmarks[0][197].y),
+      z: (results.multiFaceLandmarks[0][197].z),
+    }
+
     let distance = getDistance(pupils.left, pupils.right);
     let irisWidthInMM = 12.0;
     let pupilWidth = Math.min(pupils.left.width, pupils.right.width);
@@ -70,6 +96,33 @@ function onResults(results) {
     canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[1][0]].x * 1280.0 - 2, results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[1][0]].y * 720.0 - 2,4,4);
     canvasCtx.fillRect(results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[3][0]].x * 1280.0 - 2, results.multiFaceLandmarks[0][FACEMESH_RIGHT_IRIS[3][0]].y * 720.0 - 2,4,4);
     canvasCtx.fillRect(pupils.right.x * 1280.0 - 2, pupils.right.y * 720.0 - 2,4,4);
+
+    if (tryonActive) {
+      // Nose
+      canvasCtx.fillStyle = 'orange';
+      canvasCtx.fillRect(nose.x * 1280.0 - 2, nose.y * 720.0 - 2,4,4);
+
+      let frameWidth = (pupilWidth / irisWidthInMM) * 139.0;
+      let frameHeight = frameWidth * frameAspectRatio * 2;
+
+      let framePosition = {
+        x: nose.x - frameWidth / 2.0,
+        y: nose.y - frameHeight / 2.0,
+      }
+
+      let frameRotation = Math.atan2(pupils.left.y - pupils.right.y, pupils.left.x - pupils.right.x);
+      canvasCtx.translate(nose.x * 1280.0, nose.y * 720.0);
+      canvasCtx.rotate(frameRotation);
+      canvasCtx.translate(- (nose.x * 1280.0), - (nose.y * 720.0));
+      canvasCtx.drawImage(
+        frameImage,
+        framePosition.x * 1280.0,
+        framePosition.y * 720.0,
+        frameWidth * 1280.0,
+        frameHeight * 720.0
+      );
+      canvasCtx.setTransform(1, 0, 0, 1, 0, 0);
+    }
   }
 
   canvasCtx.restore();
@@ -100,7 +153,17 @@ const camera = new Camera(videoElement, {
   width: 1280,
   height: 720
 });
-camera.start();
+
+let frameAspectRatio = 0;
+let frameImage = new Image();
+
+frameImage.onload = function () {
+  frameAspectRatio = frameImage.height / frameImage.width;
+  camera.start();
+}
+
+frameImage.src = 'tryon-frame.png';
+
 </script>
 
 </html>
