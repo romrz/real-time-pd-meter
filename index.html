@@ -75,7 +75,7 @@ function onResults(results) {
 
     let distance = getDistance(pupils.left, pupils.right);
     let irisWidthInMM = 12.0;
-    let pupilWidth = Math.min(pupils.left.width, pupils.right.width);
+    let pupilWidth = (pupils.left.width + pupils.right.width) / 2.0;
     let pd = (irisWidthInMM / pupilWidth) * distance;
 
     canvasCtx.font = '20px Arial';
