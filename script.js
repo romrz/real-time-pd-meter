@@ -4,7 +4,7 @@ const { FaceLandmarker, FilesetResolver, DrawingUtils } = vision;
 
 const VISION_PATH = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
 const MODEL_PATH = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
-const IRIS_WIDTH_IN_MM = 11.7;
+const IRIS_WIDTH_IN_MM = 12;
 
 let videoWidth = 1920;
 let videoHeight;
@@ -165,7 +165,7 @@ function drawPoint(x, y) {
 }
 
 function drawTryonFrame(pupils, nose) { 
-  let frameWidthPx = (pupils.left.widthPx / IRIS_WIDTH_IN_MM) * 138.0;
+  let frameWidthPx = (pupils.left.widthPx / IRIS_WIDTH_IN_MM) * 153.0;
 
   let frameRotation = Math.atan2(
     (pupils.left.y - pupils.right.y) * videoHeight,
@@ -240,7 +240,7 @@ function loadTryonFrameImage() {
     frameAspectRatio = frameImage.height / frameImage.width;
   }
 
-  frameImage.src = 'mason-frame.png';
+  frameImage.src = 'elwood-frame.png';
 }
 
 await createFaceLandmarker();
