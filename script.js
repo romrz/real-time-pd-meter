@@ -1,9 +1,9 @@
-import vision from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3";
+import vision from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.4";
 
 const { FaceLandmarker, FilesetResolver, DrawingUtils } = vision;
 
-const VISION_PATH = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
-const MODEL_PATH = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
+const VISION_PATH = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.4/wasm"
+const MODEL_PATH = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task"
 const IRIS_WIDTH_IN_MM = 12;
 
 let videoWidth = 1920;
@@ -26,10 +26,13 @@ let frameImage = new Image();
 async function createFaceLandmarker() {
   const filesetResolver = await FilesetResolver.forVisionTasks(VISION_PATH);
   faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
-    baseOptions: { modelAssetPath: MODEL_PATH },
+    baseOptions: {
+      modelAssetPath: MODEL_PATH,
+      delegate: "GPU",
+    },
     outputFaceBlendshapes: true,
     runningMode,
-    numFaces: 1
+    numFaces: 1,
   });
 }
 
