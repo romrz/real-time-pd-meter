@@ -1,9 +1,9 @@
-import vision from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.4";
+import vision from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3";
 
 const { FaceLandmarker, FilesetResolver, DrawingUtils } = vision;
 
-const VISION_PATH = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.4/wasm"
-const MODEL_PATH = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task"
+const VISION_PATH = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
+const MODEL_PATH = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
 const IRIS_WIDTH_IN_MM = 12;
 
 let videoWidth = 1920;
@@ -88,11 +88,11 @@ function onResults(results) {
     let nose = getNose(results.faceLandmarks[0]);
     
     let pupilsDistance = getDistanceInScreenCoordinates(pupils.left, pupils.right);
-
     let pdLeft = (IRIS_WIDTH_IN_MM / pupils.left.widthPx) * pupilsDistance
     let pdRight = (IRIS_WIDTH_IN_MM / pupils.right.widthPx) * pupilsDistance
 
-    updatePD((pdLeft + pdRight) / 2);
+    updatePD(Math.max(pdLeft, pdRight), 'left');
+    updatePD(0, 'right');
 
     if (faceMeshActive) {
       drawFaceMesh(results)
@@ -134,8 +134,8 @@ function getNose(landmarks) {
   }
 }
 
-function updatePD(pd) {
-  document.getElementById('pd-score').innerHTML = pd.toFixed(0);
+function updatePD(pd, side) {
+  document.getElementById('pd-score-' + side).innerHTML = pd.toFixed(0);
 }
 
 function drawPoints(pupils, nose, landmarks) {
